@@ -28,13 +28,14 @@ internal static class HostingExtensions
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseSuccessEvents = true;
+                options.IssuerUri = builder.Configuration["IssuerUri"];
 
                 // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
                 // options.EmitStaticAudienceClaim = true;
             })
             .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
-            .AddInMemoryClients(Config.Clients)
+            .AddInMemoryClients(Config.Clients(builder.Configuration))
             .AddAspNetIdentity<ApplicationUser>()
             .AddProfileService<CustomProfileService>();
 
@@ -43,17 +44,12 @@ internal static class HostingExtensions
             options.Cookie.SameSite = SameSiteMode.Lax;
         });
 
-        builder.Services.AddAuthentication();
-        // .AddGoogle(options =>
-        // {
-        //     options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+        builder.Services.ConfigureExternalCookie(options =>
+        {
+            options.Cookie.SameSite = SameSiteMode.Lax;
+        });
 
-        //     // register your IdentityServer with Google at https://console.developers.google.com
-        //     // enable the Google+ API
-        //     // set the redirect URI to https://localhost:5001/signin-google
-        //     options.ClientId = "copy client ID from Google here";
-        //     options.ClientSecret = "copy client secret from Google here";
-        // });
+        builder.Services.AddAuthentication();
 
         return builder.Build();
     }
